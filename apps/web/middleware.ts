@@ -1,13 +1,3 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-// Static export: middleware is disabled.
-// Auth is handled client-side in each protected page component.
-export function middleware(request: NextRequest) {
-  return NextResponse.next();
-}
-
-export const config = {
-  matcher: [],
-};
-
+// Middleware disabled: not compatible with Next.js static export (output: 'export')
+// Auth protection is handled client-side in each page component.
+export {};
