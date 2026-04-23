@@ -4,11 +4,13 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { MOCK_SHOPS, MockMenuItem } from '@/lib/mock-data';
 import { notFound } from 'next/navigation';
+import { use } from 'react';
 import { useState, useEffect } from 'react';
 
-export default function CheckoutPage({ params }: { params: { slug: string } }) {
+export default function CheckoutPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = use(params);
   const searchParams = useSearchParams();
-  const shop = MOCK_SHOPS.find(s => s.slug === params.slug);
+  const shop = MOCK_SHOPS.find(s => s.slug === resolvedParams.slug);
   
   if (!shop) return notFound();
 

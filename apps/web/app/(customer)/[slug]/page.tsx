@@ -1,12 +1,14 @@
 "use client";
 
+import { use } from 'react';
 import { useState } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MOCK_SHOPS, MOCK_MENU, MockMenuItem } from '@/lib/mock-data';
 
-export default function ShopMenuPage({ params }: { params: { slug: string } }) {
-  const shop = MOCK_SHOPS.find(s => s.slug === params.slug);
+export default function ShopMenuPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = use(params);
+  const shop = MOCK_SHOPS.find(s => s.slug === resolvedParams.slug);
   
   if (!shop) return notFound();
   
