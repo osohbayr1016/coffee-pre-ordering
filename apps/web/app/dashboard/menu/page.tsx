@@ -10,7 +10,14 @@ export default function MenuManagementPage() {
   const [loading, setLoading] = useState(false);
   
   // New Item State
-  const [newItem, setNewItem] = useState({
+  const [newItem, setNewItem] = useState<{
+    name: string;
+    category: string;
+    price: string;
+    prep_time_mins: number;
+    temp_options: 'hot' | 'cold' | 'both';
+    image_url: string;
+  }>({
     name: '',
     category: 'coffee',
     price: '',
@@ -38,6 +45,7 @@ export default function MenuManagementPage() {
       await api.createMenuItem(shopId, {
         ...newItem,
         price: parseInt(newItem.price),
+        temp_options: [newItem.temp_options],
       });
       setIsModalOpen(false);
       setNewItem({ name: '', category: 'coffee', price: '', prep_time_mins: 3, temp_options: 'both', image_url: '' });
@@ -182,7 +190,7 @@ export default function MenuManagementPage() {
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-white/60 mb-1">Temperature</label>
                   <select 
-                    value={newItem.temp_options} onChange={e => setNewItem({...newItem, temp_options: e.target.value})}
+                    value={newItem.temp_options} onChange={e => setNewItem({...newItem, temp_options: e.target.value as 'hot' | 'cold' | 'both'})}
                     className="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-white"
                   >
                     <option value="both">Hot & Cold</option>
