@@ -1,0 +1,22 @@
+{
+  "name": "coffee-platform",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=api",
+    "dev:webhook": "npm run dev --workspace=webhook",
+    "dev:web": "npm run dev --workspace=web",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:webhook\" \"npm run dev:web\"",
+    "build": "npm run build --workspaces --if-present",
+    "deploy:api": "npm run deploy --workspace=api",
+    "deploy:web": "npm run deploy --workspace=web"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.5.4"
+  }
+}

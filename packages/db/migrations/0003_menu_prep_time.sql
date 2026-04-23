@@ -1,0 +1,1 @@
+ALTER TABLE menu_items ADD COLUMN prep_time_mins INTEGER NOT NULL DEFAULT 3;
