@@ -1,4 +1,4 @@
-export const API_URL = 'http://localhost:8787/v1';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://coffee-api.osohoo691016.workers.dev/v1';
 import { MenuItem } from '@coffee/shared/src/types';
 
 export const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {

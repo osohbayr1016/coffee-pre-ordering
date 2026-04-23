@@ -40,7 +40,7 @@ export default function LiveOrdersPage() {
     { title: "Preparing", status: "preparing", color: "border-yellow-500/50" },
     { title: "Ready for Pickup", status: "ready", color: "border-green-500/50" },
   ];
-
+  
   const playChime = () => {
     const beep = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU";
     try {

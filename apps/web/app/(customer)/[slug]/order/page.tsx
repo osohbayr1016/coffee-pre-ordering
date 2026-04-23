@@ -7,6 +7,10 @@ import { notFound } from 'next/navigation';
 import { use } from 'react';
 import { useState, useEffect } from 'react';
 
+export async function generateStaticParams() {
+  return MOCK_SHOPS.map((shop) => ({ slug: shop.slug }));
+}
+
 export default function CheckoutPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
   const searchParams = useSearchParams();
