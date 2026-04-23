@@ -41,14 +41,10 @@ export default function LiveOrdersPage() {
     { title: "Ready for Pickup", status: "ready", color: "border-green-500/50" },
   ];
 
-  // --- Premium Features ---
   const playChime = () => {
-    // We use a base64 encoded short beep so we don't need external assets
     const beep = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU";
     try {
-      // In a real app we'd use a real sound file, here we'll just simulate the action
       console.log("DING! Playing audio chime...");
-      // let audio = new Audio('/chime.mp3'); audio.play();
     } catch(e) {}
   };
 
