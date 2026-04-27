@@ -39,7 +39,7 @@ export type MenuItem = {
   name:         string
   category:     string
   price:        number
-  temp_options: Array<'hot' | 'cold' | 'both'>
+  temp_options: 'hot' | 'cold' | 'both'
   image_url:    string | null
   is_available: boolean
   prep_time_mins?: number

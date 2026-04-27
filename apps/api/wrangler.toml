@@ -24,7 +24,7 @@ preview_id  = "3c8704d7c48b407b943cf22a6a9c96ae"
 # ── Environment Variables ────────────────────────────
 [vars]
 ENVIRONMENT  = "production"
-CORS_ORIGIN  = "https://coffee-web.pages.dev"
+CORS_ORIGIN  = "https://coffee-web-dr8.pages.dev"
 
 # ── Local dev env ───────────────────────────────────
 [env.local]

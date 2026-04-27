@@ -1,46 +1,27 @@
 export default function MarketingPage() {
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Marketing & Promos</h1>
-          <p className="text-zinc-400 text-sm">Manage promo codes and referrals</p>
+          <h1 className="text-3xl font-black mb-1 tracking-tight">Marketing & Promos</h1>
+          <p className="text-zinc-400">Manage promo codes and referral campaigns</p>
         </div>
-        <button className="bg-amber-600 hover:bg-amber-500 px-4 py-2 rounded-lg text-sm font-medium transition-colors text-white">
+        <button disabled className="bg-zinc-800 text-zinc-500 px-6 py-2.5 rounded-xl text-sm font-bold shadow-inner cursor-not-allowed border border-white/5">
           + New Campaign
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="glass-panel p-6 bg-zinc-900/50 border-white/5">
-          <h2 className="font-semibold mb-4 text-lg border-b border-white/5 pb-2">Active Promo Codes</h2>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10 border-l-4 border-l-green-500">
-              <div>
-                <span className="font-mono text-amber-400 font-bold tracking-widest">FIRSTCOFFEE50</span>
-                <p className="text-xs text-zinc-400 mt-1">50% off first order</p>
-              </div>
-              <div className="text-right">
-                <span className="text-sm font-medium">342 uses</span>
-                <p className="text-xs text-zinc-500 mt-1">Ends in 5 days</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-panel p-6 bg-zinc-900/50 border-white/5">
-          <h2 className="font-semibold mb-4 text-lg border-b border-white/5 pb-2">Referral Program Stats</h2>
-          <div className="flex items-center gap-6">
-            <div>
-              <p className="text-3xl font-bold text-amber-500">128</p>
-              <p className="text-sm text-zinc-400 mt-1">New users referred</p>
-            </div>
-            <div className="h-12 w-px bg-white/10"></div>
-            <div>
-              <p className="text-3xl font-bold">₮320k</p>
-              <p className="text-sm text-zinc-400 mt-1">Discounts awarded</p>
-            </div>
-          </div>
+      <div className="glass-panel p-12 text-center rounded-3xl border border-white/5 bg-gradient-to-b from-zinc-900/60 to-black/80 shadow-2xl relative overflow-hidden group">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(245,158,11,0.1),_transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+        <div className="text-6xl mb-6 drop-shadow-2xl opacity-80 mix-blend-luminosity">🚀</div>
+        <h2 className="text-2xl font-black tracking-widest text-white mb-2">PROMOS COMING SOON</h2>
+        <p className="text-zinc-400 max-w-md mx-auto leading-relaxed">
+          The campaign engine is currently being upgraded. Soon you'll be able to launch highly targeted promo codes, automated referral rewards, and seasonal discounts directly from this dashboard.
+        </p>
+        <div className="mt-8 flex justify-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{animationDelay: '0ms'}}></div>
+          <div className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{animationDelay: '150ms'}}></div>
+          <div className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{animationDelay: '300ms'}}></div>
         </div>
       </div>
     </div>

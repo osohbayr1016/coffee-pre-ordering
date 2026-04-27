@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import SidebarNav from './SidebarNav';
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex bg-[#0a0a0a]">
@@ -10,20 +12,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <p className="text-xs text-white/50 mt-1">Gobi Coffee</p>
         </div>
         
-        <nav className="flex-1 p-4 space-y-2">
-          <Link href="/dashboard" className="block px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors">
-            Overview
-          </Link>
-          <Link href="/dashboard/orders" className="block px-4 py-2 rounded-lg bg-coffee/20 text-coffee-light hover:bg-coffee/30 transition-colors">
-            Live Orders
-          </Link>
-          <Link href="/dashboard/menu" className="block px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors">
-            Menu Management
-          </Link>
-          <Link href="/dashboard/settings" className="block px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors">
-            Shop Settings
-          </Link>
-        </nav>
+        <SidebarNav />
         
         <div className="p-4 border-t border-white/10">
           <Link href="/" className="block px-4 py-2 text-sm text-red-400 hover:text-red-300 transition-colors">

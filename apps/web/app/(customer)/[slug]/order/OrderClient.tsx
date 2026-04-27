@@ -1,13 +1,15 @@
 "use client";
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MOCK_SHOPS, MockMenuItem } from '@/lib/mock-data';
 import { notFound } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { api } from '@/lib/api';
 
 export default function OrderClient({ slug }: { slug: string }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const shop = MOCK_SHOPS.find(s => s.slug === slug);
 
   if (!shop) return notFound();
@@ -19,8 +21,7 @@ export default function OrderClient({ slug }: { slug: string }) {
     if (itemsParam) cart = JSON.parse(itemsParam);
   } catch (e) {}
 
-  const [status, setStatus] = useState<'review' | 'paying' | 'paid' | 'preparing' | 'ready'>('review');
-  const [pickupCode, setPickupCode] = useState('');
+  const [status, setStatus] = useState<'review' | 'paying'>('review');
   const [promo, setPromo] = useState('');
   const [discount, setDiscount] = useState(0);
 
@@ -36,70 +37,31 @@ export default function OrderClient({ slug }: { slug: string }) {
     }
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     setStatus('paying');
-    setTimeout(() => {
-      const code = '#' + Math.random().toString(36).substring(2, 6).toUpperCase();
-      setPickupCode(code);
-      setStatus('paid');
-    }, 1500);
-  };
-
-  useEffect(() => {
-    if (status === 'paid') {
-      const t1 = setTimeout(() => setStatus('preparing'), 3000);
-      const t2 = setTimeout(() => setStatus('ready'), 8000);
-      return () => { clearTimeout(t1); clearTimeout(t2); };
+    try {
+      // For demonstration of the live tracker, we will duplicate a recent order
+      // since the full cart-to-API flow isn't wired up yet.
+      const recentOrder = await api.getRecentOrder();
+      if (recentOrder && !recentOrder.error) {
+        const newOrder = await api.reorder(recentOrder.id);
+        router.push(`/orders/tracker?id=${newOrder.id}`);
+      } else {
+        alert("Failed to find a recent order to duplicate for the demo.");
+        setStatus('review');
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Payment failed.");
+      setStatus('review');
     }
-  }, [status]);
+  };
 
   if (cart.length === 0) {
     return (
       <main className="max-w-xl mx-auto p-8 text-center min-h-screen flex flex-col items-center justify-center">
         <p className="text-white/60 mb-4">Your cart is empty.</p>
         <Link href={`/${shop.slug}`} className="text-coffee-light hover:underline">Go back to menu</Link>
-      </main>
-    );
-  }
-
-  if (['paid', 'preparing', 'ready'].includes(status)) {
-    return (
-      <main className="max-w-md mx-auto p-6 md:p-12 text-center min-h-screen flex flex-col justify-center">
-        <div className="glass-panel p-8 relative overflow-hidden">
-          {status === 'ready' && <div className="absolute inset-0 bg-green-500/20 animate-pulse"></div>}
-          <h1 className="text-3xl font-bold mb-4 relative z-10">Live Tracker</h1>
-          {pickupCode && (
-            <div className="mb-8 relative z-10 bg-white/5 border border-white/10 rounded-xl p-4 inline-block">
-              <p className="text-sm text-white/60 mb-1 uppercase tracking-widest">Your Order Code</p>
-              <p className="text-5xl font-black text-amber-500 tracking-wider">{pickupCode}</p>
-              <p className="text-xs text-white/40 mt-2">Show this to the barista</p>
-            </div>
-          )}
-          <div className="space-y-6 relative z-10 text-left">
-            <div className={`flex items-center gap-4 ${status === 'paid' ? 'text-amber-400 opacity-100' : 'opacity-50'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${status === 'paid' ? 'bg-amber-500 text-black' : 'bg-white/20'}`}>1</div>
-              <span className="font-bold text-lg">Order Sent</span>
-            </div>
-            <div className={`flex items-center gap-4 ${status === 'preparing' ? 'text-blue-400 opacity-100' : 'opacity-50'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${status === 'preparing' ? 'bg-blue-500 text-black' : 'bg-white/20'}`}>2</div>
-              <span className="font-bold text-lg">Barista is Preparing</span>
-            </div>
-            <div className={`flex items-center gap-4 ${status === 'ready' ? 'text-green-400 opacity-100 scale-110 origin-left transition-transform' : 'opacity-50'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${status === 'ready' ? 'bg-green-500 text-black' : 'bg-white/20'}`}>3</div>
-              <span className="font-bold text-lg">Ready for Pickup!</span>
-            </div>
-          </div>
-        </div>
-        {status === 'ready' && (
-          <a
-            href={`https://www.google.com/maps/dir/?api=1&destination=${shop.lat},${shop.lng}`}
-            target="_blank" rel="noreferrer"
-            className="mt-6 bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-bold flex justify-center items-center gap-2 transition-colors"
-          >
-            Get Directions
-          </a>
-        )}
-        <Link href="/" className="mt-6 text-white/50 hover:text-white underline">Back to Map</Link>
       </main>
     );
   }
