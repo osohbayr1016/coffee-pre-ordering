@@ -2,6 +2,24 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://coffee-api.os
 import { MenuItem } from '@coffee/shared/src/types';
 
 const CUSTOMER_TOKEN_KEY = 'bonum_customer_token';
+export const ADMIN_TOKEN_KEY = 'bonum_admin_token';
+
+export const fetchWithAdminAuth = async (endpoint: string, options: RequestInit = {}) => {
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem(ADMIN_TOKEN_KEY) : null;
+
+  const headers = new Headers(options.headers || {});
+  headers.append('Content-Type', 'application/json');
+  if (token) headers.append('Authorization', `Bearer ${token}`);
+
+  const res = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+
+  if (!res.ok) {
+    throw new Error('API request failed');
+  }
+
+  return res.json();
+};
 
 export const fetchWithCustomerAuth = async (endpoint: string, options: RequestInit = {}) => {
   const token = typeof window !== 'undefined' ? localStorage.getItem(CUSTOMER_TOKEN_KEY) : null;
@@ -74,6 +92,88 @@ export const api = {
     method: 'POST',
     body: JSON.stringify(data)
   }),
+
+  async adminLogin(email: string, password: string) {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = (await res.json().catch(() => ({}))) as {
+      error?: string;
+      token?: string;
+      user?: { role?: string };
+    };
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+    if (data.user?.role !== 'admin') {
+      throw new Error('This account is not a platform admin.');
+    }
+    if (typeof window !== 'undefined' && data.token) {
+      localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+    }
+    return data;
+  },
+
+  async shopPortalLogin(email: string, password: string) {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = (await res.json().catch(() => ({}))) as {
+      error?: string;
+      token?: string;
+      user?: { role?: string; shopId?: string | null };
+    };
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+    const r = data.user?.role;
+    const needsShop =
+      r === 'shop_owner' || r === 'menu_manager' || r === 'orders_manager';
+    if (needsShop && !data.user?.shopId) {
+      throw new Error('No shop is assigned to this account.');
+    }
+    if (typeof window !== 'undefined' && data.token) {
+      localStorage.setItem('bonum_token', data.token);
+      localStorage.setItem('bonum_shop_id', data.user?.shopId ?? '');
+      localStorage.setItem('bonum_dashboard_role', r ?? '');
+    }
+    return data;
+  },
+
+  shopPortalLogout() {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem('bonum_token');
+    localStorage.removeItem('bonum_shop_id');
+    localStorage.removeItem('bonum_dashboard_role');
+  },
+
+  adminLogout() {
+    if (typeof window !== 'undefined') localStorage.removeItem(ADMIN_TOKEN_KEY);
+  },
+
+  adminCreateShop: (body: Record<string, unknown>) =>
+    fetchWithAdminAuth('/admin/shops', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  adminGetShopTeam: (shopId: string) =>
+    fetchWithAdminAuth(`/admin/shops/${shopId}/team`),
+
+  adminAddShopManager: (
+    shopId: string,
+    body: {
+      email: string;
+      password: string;
+      display_name: string;
+      staff_role: 'menu_manager' | 'orders_manager';
+    }
+  ) =>
+    fetchWithAdminAuth(`/admin/shops/${shopId}/managers`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
   uploadImage: async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -92,9 +192,9 @@ export const api = {
     if (!res.ok) throw new Error('Upload failed');
     return res.json();
   },
-  getAdminMetrics: () => fetchWithAuth('/admin/metrics'),
-  getAdminPayouts: () => fetchWithAuth('/admin/payouts'),
-  getAdminHeatmap: () => fetchWithAuth('/admin/heatmap'),
+  getAdminMetrics: () => fetchWithAdminAuth('/admin/metrics'),
+  getAdminPayouts: () => fetchWithAdminAuth('/admin/payouts'),
+  getAdminHeatmap: () => fetchWithAdminAuth('/admin/heatmap'),
   
   // Shop Dashboard Endpoints
   getShop: (shopId: string) => fetchWithAuth(`/shops/${shopId}`),

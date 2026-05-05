@@ -1,10 +1,14 @@
 import { Hono } from 'hono';
+import { adminShopsRouter } from './admin-shops';
 
 type Bindings = {
   DB: D1Database;
+  JWT_SECRET: string;
 };
 
 export const adminRouter = new Hono<{ Bindings: Bindings }>();
+
+adminRouter.route('/shops', adminShopsRouter);
 
 adminRouter.get('/metrics', async (c) => {
   // Aggregate real stats

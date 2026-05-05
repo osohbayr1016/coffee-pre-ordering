@@ -1,54 +1,67 @@
 import { Hono } from 'hono';
 import { sign } from 'hono/jwt';
+import { handleBootstrapAdmin } from '../lib/bootstrap-platform-admin';
 
-// We'll define the Hono app type so we have access to Bindings
 type Bindings = {
   DB: D1Database;
   JWT_SECRET: string;
+  BOOTSTRAP_ADMIN_SECRET?: string;
 };
 
 export const authRouter = new Hono<{ Bindings: Bindings }>();
 
 authRouter.post('/login', async (c) => {
   const { email, password } = await c.req.json();
-  
+
   if (!email || !password) {
     return c.json({ error: 'Email and password required' }, 400);
   }
 
-  // 1. Fetch user from DB
-  const user = await c.env.DB.prepare('SELECT id, role, password_hash FROM users WHERE email = ?')
-    .bind(email)
-    .first<{ id: string; role: string; password_hash: string }>();
+  const normalizedEmail = email.trim().toLowerCase();
 
-  if (!user || user.password_hash !== password) {
+  const user = await c.env.DB.prepare(
+    'SELECT id, role, password_hash FROM users WHERE lower(email) = ?'
+  )
+    .bind(normalizedEmail)
+    .first<{ id: string; role: string; password_hash: string | null }>();
+
+  if (!user?.password_hash || user.password_hash !== password) {
     return c.json({ error: 'Invalid credentials' }, 401);
   }
 
-  // 2. Fetch the shop id if they are a shop owner
   let shopId = null;
   if (user.role === 'shop_owner') {
     const shop = await c.env.DB.prepare('SELECT id FROM coffee_shops WHERE owner_id = ?')
       .bind(user.id)
       .first<{ id: string }>();
     if (shop) shopId = shop.id;
+  } else if (user.role === 'menu_manager' || user.role === 'orders_manager') {
+    const row = await c.env.DB.prepare(
+      'SELECT shop_id FROM shop_staff WHERE user_id = ? LIMIT 1'
+    )
+      .bind(user.id)
+      .first<{ shop_id: string }>();
+    if (row) shopId = row.shop_id;
   }
 
-  // 3. Create JWT
   const payload = {
     userId: user.id,
     role: user.role,
     shopId: shopId,
-    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7,
   };
-  
-  // NOTE: Ensure JWT_SECRET is in .dev.vars
-  const token = await sign(payload, c.env.JWT_SECRET || 'fallback_secret_for_local_dev', 'HS256');
+
+  const token = await sign(
+    payload,
+    c.env.JWT_SECRET || 'fallback_secret_for_local_dev',
+    'HS256'
+  );
 
   return c.json({ token, user: { id: user.id, role: user.role, shopId } });
 });
 
-// Anonymous customer for map/checkout (JWT stored as bonum_customer_token on web)
+authRouter.post('/bootstrap-admin', handleBootstrapAdmin);
+
 authRouter.post('/bootstrap', async (c) => {
   const row = await c.env.DB.prepare(`
     INSERT INTO users (role, display_name)
@@ -64,6 +77,10 @@ authRouter.post('/bootstrap', async (c) => {
     shopId: null as string | null,
     exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 365,
   };
-  const token = await sign(payload, c.env.JWT_SECRET || 'fallback_secret_for_local_dev', 'HS256');
+  const token = await sign(
+    payload,
+    c.env.JWT_SECRET || 'fallback_secret_for_local_dev',
+    'HS256'
+  );
   return c.json({ token, user: { id: row.id } });
 });

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -16,24 +17,8 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:8787/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-
-      // Store token in cookie (for middleware) and localStorage (for client API calls)
-      document.cookie = `bonum_token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}`;
-      localStorage.setItem('bonum_token', data.token);
-      localStorage.setItem('bonum_shop_id', data.user.shopId);
-
-      router.push('/dashboard/orders');
+      await api.shopPortalLogin(email, password);
+      router.push('/dashboard/orders/');
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

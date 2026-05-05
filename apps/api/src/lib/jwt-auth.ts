@@ -27,3 +27,9 @@ export async function requireCustomerJwt(c: Context): Promise<JwtPayload | null>
   if (!payload || payload.role !== 'customer') return null;
   return payload;
 }
+
+export async function requireAdminJwt(c: Context): Promise<JwtPayload | null> {
+  const payload = await verifyBearer(c);
+  if (!payload || payload.role !== 'admin') return null;
+  return payload;
+}

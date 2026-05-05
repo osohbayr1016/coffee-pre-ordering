@@ -11,6 +11,7 @@ type Bindings = {
   CORS_ORIGIN:  string
   QPAY_SECRET:  string  // from .dev.vars
   JWT_SECRET:   string  // from .dev.vars
+  BOOTSTRAP_ADMIN_SECRET?: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -20,7 +21,7 @@ app.use('*', logger())
 app.use('*', cors({
   origin: (origin, c) => c.env.CORS_ORIGIN,
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Bootstrap-Secret'],
   credentials: true,
 }))
 

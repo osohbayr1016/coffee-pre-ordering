@@ -1,6 +1,5 @@
-import Link from 'next/link';
-
 import SidebarNav from './SidebarNav';
+import DashboardSignOut from './DashboardSignOut';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -15,9 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SidebarNav />
         
         <div className="p-4 border-t border-white/10">
-          <Link href="/" className="block px-4 py-2 text-sm text-red-400 hover:text-red-300 transition-colors">
-            Sign Out
-          </Link>
+          <DashboardSignOut />
         </div>
       </aside>
 
