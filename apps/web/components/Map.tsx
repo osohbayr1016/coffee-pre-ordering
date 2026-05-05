@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import { api } from "@/lib/api";
+import { api, ensureCustomerSession } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -65,18 +65,26 @@ export default function Map() {
 
   useEffect(() => {
     setIsMounted(true);
-    
-    // Fetch Shops
-    api.getShops().then(data => {
-      setShops(data);
-    }).catch(err => console.error("Failed to load map shops:", err));
 
-    // Fetch Recent Order (Routine)
-    api.getRecentOrder().then(order => {
-      if (order && !order.error) {
-        setRecentOrder(order);
-      }
-    }).catch(() => console.log("No recent order found"));
+    void (async () => {
+      await ensureCustomerSession().catch(() => {});
+
+      api
+        .getShops()
+        .then((data) => {
+          setShops(data);
+        })
+        .catch((err) => console.error("Failed to load map shops:", err));
+
+      api
+        .getRecentOrder()
+        .then((order) => {
+          if (order && !order.error) {
+            setRecentOrder(order);
+          }
+        })
+        .catch(() => console.log("No recent order found"));
+    })();
 
     // Request Geolocation
     if ("geolocation" in navigator) {
@@ -97,7 +105,7 @@ export default function Map() {
     setIsReordering(true);
     try {
       const newOrder = await api.reorder(recentOrder.id);
-      router.push(`/orders/tracker?id=${newOrder.id}`); 
+      router.push(`/orders/tracker/?id=${newOrder.id}`); 
     } catch (err) {
       console.error(err);
       alert("Failed to place 1-click order.");
@@ -120,12 +128,14 @@ export default function Map() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   useEffect(() => {
-    // Fetch user profile on mount
-    api.getProfile().then(user => {
-      if (user && user.allergy_profile) {
-        setAllergyText(user.allergy_profile);
-      }
-    }).catch(err => console.log("Failed to load profile", err));
+    void ensureCustomerSession()
+      .then(() => api.getProfile())
+      .then((user) => {
+        if (user && user.allergy_profile) {
+          setAllergyText(user.allergy_profile);
+        }
+      })
+      .catch((err) => console.log("Failed to load profile", err));
   }, []);
 
   const handleSaveProfile = async () => {

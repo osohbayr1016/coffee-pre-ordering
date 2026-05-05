@@ -1,8 +1,8 @@
-import { MOCK_SHOPS } from '@/lib/mock-data';
+import { buildShopSlugParams } from '@/lib/build-shop-slugs';
 import ShopMenuClient from './ShopMenuClient';
 
 export async function generateStaticParams() {
-  return MOCK_SHOPS.map((shop) => ({ slug: shop.slug }));
+  return buildShopSlugParams();
 }
 
 export default async function ShopMenuPage({ params }: { params: Promise<{ slug: string }> }) {

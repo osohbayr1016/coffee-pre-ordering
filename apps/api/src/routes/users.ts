@@ -1,25 +1,25 @@
 import { Hono } from 'hono';
+import { verifyBearer } from '../lib/jwt-auth';
 
 type Bindings = {
   DB: D1Database;
+  JWT_SECRET: string;
 };
 
 export const usersRouter = new Hono<{ Bindings: Bindings }>();
 
-// Update user profile (Allergy & Taste)
 usersRouter.patch('/me/profile', async (c) => {
-  // Normally use JWT auth user ID here. For demo, we update a mock 'customer-1' or grab the first user.
+  const payload = await verifyBearer(c);
+  if (!payload) return c.json({ error: 'Unauthorized' }, 401);
+
   const { allergy_profile } = await c.req.json();
 
   try {
-    // For demo: grab the first user in the system to act as our logged-in customer
-    const user = await c.env.DB.prepare('SELECT id FROM users LIMIT 1').first<{id: string}>();
-    if (!user) return c.json({ error: 'No user found' }, 404);
-
     const result = await c.env.DB.prepare(`
       UPDATE users SET allergy_profile = ? WHERE id = ? RETURNING *
-    `).bind(allergy_profile, user.id).first();
+    `).bind(allergy_profile, payload.userId).first();
 
+    if (!result) return c.json({ error: 'User not found' }, 404);
     return c.json(result);
   } catch (err) {
     console.error('Error updating profile:', err);
@@ -27,10 +27,13 @@ usersRouter.patch('/me/profile', async (c) => {
   }
 });
 
-// Get user profile
 usersRouter.get('/me/profile', async (c) => {
+  const payload = await verifyBearer(c);
+  if (!payload) return c.json({ error: 'Unauthorized' }, 401);
+
   try {
-    const user = await c.env.DB.prepare('SELECT * FROM users LIMIT 1').first();
+    const user = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(payload.userId).first();
+    if (!user) return c.json({ error: 'User not found' }, 404);
     return c.json(user);
   } catch (err) {
     console.error('Error fetching profile:', err);

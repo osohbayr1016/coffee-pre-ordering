@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
-import { MOCK_SHOPS } from '@/lib/mock-data';
+import { buildShopSlugParams } from '@/lib/build-shop-slugs';
 import OrderClient from './OrderClient';
 
 export async function generateStaticParams() {
-  return MOCK_SHOPS.map((shop) => ({ slug: shop.slug }));
+  return buildShopSlugParams();
 }
 
 export default async function CheckoutPage({ params }: { params: Promise<{ slug: string }> }) {

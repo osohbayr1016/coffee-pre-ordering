@@ -14,6 +14,16 @@ shopsRouter.get('/', async (c) => {
   return c.json(shops.results);
 });
 
+// Public lookup by slug (must be before /:id)
+shopsRouter.get('/slug/:slug', async (c) => {
+  const slug = c.req.param('slug');
+  const shop = await c.env.DB.prepare(
+    `SELECT * FROM coffee_shops WHERE slug = ?`
+  ).bind(slug).first();
+  if (!shop) return c.json({ error: 'Shop not found' }, 404);
+  return c.json(shop);
+});
+
 // Create a new shop (admin onboarding)
 shopsRouter.post('/', async (c) => {
   const body = await c.req.json();

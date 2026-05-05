@@ -43,7 +43,27 @@ authRouter.post('/login', async (c) => {
   };
   
   // NOTE: Ensure JWT_SECRET is in .dev.vars
-  const token = await sign(payload, c.env.JWT_SECRET || 'fallback_secret_for_local_dev');
+  const token = await sign(payload, c.env.JWT_SECRET || 'fallback_secret_for_local_dev', 'HS256');
 
   return c.json({ token, user: { id: user.id, role: user.role, shopId } });
+});
+
+// Anonymous customer for map/checkout (JWT stored as bonum_customer_token on web)
+authRouter.post('/bootstrap', async (c) => {
+  const row = await c.env.DB.prepare(`
+    INSERT INTO users (role, display_name)
+    VALUES ('customer', 'Guest')
+    RETURNING id
+  `).first<{ id: string }>();
+
+  if (!row?.id) return c.json({ error: 'Could not create session' }, 500);
+
+  const payload = {
+    userId: row.id,
+    role: 'customer',
+    shopId: null as string | null,
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 365,
+  };
+  const token = await sign(payload, c.env.JWT_SECRET || 'fallback_secret_for_local_dev', 'HS256');
+  return c.json({ token, user: { id: row.id } });
 });
